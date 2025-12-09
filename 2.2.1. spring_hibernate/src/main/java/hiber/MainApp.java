@@ -6,49 +6,67 @@ import hiber.model.User;
 import hiber.service.UserService;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainApp {
-   public static void main(String[] args) throws SQLException {
-      AnnotationConfigApplicationContext context = 
-            new AnnotationConfigApplicationContext(AppConfig.class);
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext context =
+                new AnnotationConfigApplicationContext(AppConfig.class);
 
-      UserService userService = context.getBean(UserService.class);
+        UserService userService = context.getBean(UserService.class);
 
-       Car car1 = new Car("Volvo", 1);
-       Car car2 = new Car("Ford", 2);
-       Car car3 = new Car("BMW", 7);
-       Car car4 = new Car("Chevy", 8);
+        List<User> users = new ArrayList<>();
+        users.add(new User("User1", "LastName1", "user1@mail.ru"));
+        users.add(new User("User2", "LastName2", "user2@mail.ru"));
+        users.add(new User("User3", "LastName3", "user3@mail.ru"));
+        users.add(new User("User4", "LastName4", "user4@mail.ru"));
 
-      userService.add(new User("User1", "Lastname1", "user1@mail.ru", car1));
-      userService.add(new User("User2", "Lastname2", "user2@mail.ru", car2));
-      userService.add(new User("User3", "Lastname3", "user3@mail.ru", car3));
-      userService.add(new User("User4", "Lastname4", "user4@mail.ru", car4));
+        for (User user : users) {
+            userService.add(user);
+        }
 
-       User userWithCar = userService.getUserByCar("BMW", 7);
-       System.out.println("Пользователь с BMW " + userWithCar.getFirstName());
-       User  userWithCar2 = userService.getUserByCar("Ford", 2);
-       System.out.println("Пользователь с Ford  " + userWithCar2.getFirstName());
+        List<Car> cars = new ArrayList<>();
+        cars.add(new Car("Volvo", 1));
+        cars.add(new Car("Ford", 2));
+        cars.add(new Car("BMW", 7));
+        cars.add(new Car("Chevy", 8));
 
+        for (Car car : cars) {
+            userService.addCar(car);
+        }
 
-       List<User> users = userService.listUsers();
-      for (User user : users) {
-         System.out.println("Id = "+user.getId());
-         System.out.println("First Name = "+user.getFirstName());
-         System.out.println("Last Name = "+user.getLastName());
-         System.out.println("Email = "+user.getEmail());
-         System.out.println();
+        List<User> usersDb = userService.listUsers();
+        List<Car> carsDb = userService.listCars();
 
-         Car car = user.getCar();
-         if  (car != null) {
-            System.out.println("Car model = "+car.getModel());
-             System.out.println("Car series = "+car.getSeries());
-         } else {
-             System.out.println("Car = null");
-         }
-      }
+        for (int i = 0; i < usersDb.size() && i < carsDb.size(); i++) {
+            usersDb.get(i).setCar(carsDb.get(i));
+        }
 
-      context.close();
-   }
+        userService.updateUsers(usersDb);
+
+        List<User> result = userService.listUsers();
+        for (User user : result) {
+            System.out.println("Id: " + user.getId());
+            System.out.println("FirstName: " + user.getFirstName());
+            System.out.println("LastName: " + user.getLastName());
+            System.out.println("Email: " + user.getEmail());
+
+            Car car = user.getCar();
+            if (car != null) {
+                System.out.println("Car model: " + car.getModel());
+                System.out.println("Car series: " + car.getSeries());
+            } else {
+                System.out.println("Car is null");
+            }
+
+        }
+
+        User userCar = userService.getUserByCar("BMW", 7);
+        if (userCar != null) {
+            System.out.println("User с BMW: " + userCar.getFirstName() + " " + userCar.getLastName());
+        }
+
+        context.close();
+    }
 }
